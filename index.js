@@ -1,6 +1,7 @@
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
+import express from 'express';
+import cors from 'cors';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,24 +9,26 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Setup PostgreSQL pool using environment variables
 const pool = new Pool({
   host: process.env.PGHOST,
   user: process.env.PGUSER,
   password: process.env.PGPASSWORD,
   database: process.env.PGDATABASE,
   port: process.env.PGPORT,
-  ssl: { rejectUnauthorized: false },  // Important for Railway
+  ssl: { rejectUnauthorized: false },
 });
 
-// Test route to check database connection
+app.get('/ping', (req, res) => {
+  res.send('pong');
+});
+
 app.get('/users', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM users');
     res.json(result.rows);
   } catch (error) {
     console.error('Database error:', error);
-    res.status(500).send('Error fetching users');
+    res.status(500).json({ error: error.message });
   }
 });
 
